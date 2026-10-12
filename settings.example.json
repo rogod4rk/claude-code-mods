@@ -1,0 +1,27 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 /absolute/path/to/claude-code-mods/statusline.py"
+  },
+  "env": {
+    "PROTECTED_PATHS": "/path/to/vendor:/path/to/generated",
+    "SECRET_FILE": "/path/to/the/secret"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "python3 /absolute/path/to/claude-code-mods/hooks/path-guard.py" },
+          { "type": "command", "command": "python3 /absolute/path/to/claude-code-mods/hooks/secret-guard.py" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 /absolute/path/to/claude-code-mods/hooks/secret-guard.py" }
+        ]
+      }
+    ]
+  }
+}
