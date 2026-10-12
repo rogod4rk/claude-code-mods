@@ -22,6 +22,8 @@ try:
     data = json.load(sys.stdin)
 except Exception:
     sys.exit(0)
+if not isinstance(data, dict):
+    sys.exit(0)
 
 if os.environ.get("ALLOW_PROTECTED_EDIT") == "1":
     sys.exit(0)
@@ -31,9 +33,10 @@ prefixes = [os.path.realpath(os.path.expanduser(p))
 if not prefixes:
     sys.exit(0)
 
-ti = data.get("tool_input") or {}
+ti = data.get("tool_input")
+ti = ti if isinstance(ti, dict) else {}
 path = ti.get("file_path") or ti.get("path") or ""
-if not path:
+if not isinstance(path, str) or not path:
     sys.exit(0)
 
 # realpath resolves symlinks (so a symlink into a protected dir still matches),

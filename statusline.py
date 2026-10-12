@@ -83,8 +83,8 @@ if WIDE:
     if d.get("fast_mode"):
         flags.append("⚡fast")
     lvl = sub("effort").get("level")
-    if lvl and lvl != "medium":
-        flags.append(str(lvl))
+    if isinstance(lvl, str) and lvl and lvl != "medium":
+        flags.append(lvl)
     if flags:
         extra.append(f"{D}{' '.join(flags)}{X}")
 

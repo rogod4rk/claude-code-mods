@@ -21,6 +21,8 @@ try:
     data = json.load(sys.stdin)
 except Exception:
     sys.exit(0)
+if not isinstance(data, dict):
+    sys.exit(0)
 
 if os.environ.get("ALLOW_SECRET_WRITE") == "1":
     sys.exit(0)
@@ -42,12 +44,13 @@ except Exception:
 if not secret or len(secret) < 12:
     sys.exit(0)  # nothing meaningful to protect
 
-ti = data.get("tool_input") or {}
+ti = data.get("tool_input")
+ti = ti if isinstance(ti, dict) else {}
 
 # Exempt the secret's own file, maintaining it is legitimate. realpath so a
 # symlinked or relative path to the same file is still recognized.
 fp = ti.get("file_path") or ti.get("path") or ""
-fp = os.path.realpath(fp) if fp else ""
+fp = os.path.realpath(fp) if isinstance(fp, str) and fp else ""
 for p in (os.environ.get("SECRET_FILE"), os.environ.get("SECRET_JSON_FILE")):
     if p and fp == os.path.realpath(os.path.expanduser(p)):
         sys.exit(0)
