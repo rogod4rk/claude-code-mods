@@ -44,13 +44,19 @@ if not secret or len(secret) < 12:
 
 ti = data.get("tool_input") or {}
 
-# Exempt the secret's own file, maintaining it is legitimate.
-fp = os.path.normpath(ti.get("file_path") or ti.get("path") or "")
+# Exempt the secret's own file, maintaining it is legitimate. realpath so a
+# symlinked or relative path to the same file is still recognized.
+fp = ti.get("file_path") or ti.get("path") or ""
+fp = os.path.realpath(fp) if fp else ""
 for p in (os.environ.get("SECRET_FILE"), os.environ.get("SECRET_JSON_FILE")):
-    if p and fp == os.path.normpath(os.path.expanduser(p)):
+    if p and fp == os.path.realpath(os.path.expanduser(p)):
         sys.exit(0)
 
-if secret in json.dumps(ti):
+# Match escaped-against-escaped: json.dumps turns a real newline/quote/backslash
+# in the payload into \n, \", \\, so compare the secret escaped the same way.
+# Without this, any multi-line secret (a PEM private key) slips through.
+needle = json.dumps(secret)[1:-1]
+if needle and needle in json.dumps(ti):
     print("BLOCKED by secret-guard: this write/command contains a protected "
           "secret. Refer to it by its file path and read it at run time instead "
           "of inlining it. If this is deliberate and authorized, re-run with "

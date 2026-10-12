@@ -26,7 +26,7 @@ except Exception:
 if os.environ.get("ALLOW_PROTECTED_EDIT") == "1":
     sys.exit(0)
 
-prefixes = [os.path.normpath(os.path.expanduser(p))
+prefixes = [os.path.realpath(os.path.expanduser(p))
             for p in (os.environ.get("PROTECTED_PATHS") or "").split(":") if p.strip()]
 if not prefixes:
     sys.exit(0)
@@ -36,8 +36,12 @@ path = ti.get("file_path") or ti.get("path") or ""
 if not path:
     sys.exit(0)
 
-norm = os.path.normpath(path)
-if any(norm == p or norm.startswith(p + os.sep) for p in prefixes):
+# realpath resolves symlinks (so a symlink into a protected dir still matches),
+# and on case-insensitive filesystems (macOS/APFS, Windows) fold case so
+# /repo/Vendor can't edit the same file /repo/vendor protects.
+fold = (lambda s: s.casefold()) if sys.platform in ("darwin", "win32") else (lambda s: s)
+norm = fold(os.path.realpath(path))
+if any(norm == fold(p) or norm.startswith(fold(p) + os.sep) for p in prefixes):
     print(f"BLOCKED by path-guard: {path} is under a protected path. "
           "Read it and use it, do not modify it here. "
           "If this change is intentional and authorized, re-run with "

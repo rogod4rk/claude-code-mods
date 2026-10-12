@@ -64,6 +64,21 @@ next render.
   broken hook never blocks your work.
 - No network, no dependencies, no telemetry.
 
+## Limitations (read before you rely on these)
+
+These are convenience guards that stop the common mistake, not hardened security
+boundaries. Known limits:
+
+- They act on the path and payload a tool reports. `path-guard` resolves symlinks
+  and folds case on macOS/Windows, but an agent that shells out to write a file by
+  some other means is outside its view. Pair it with real filesystem permissions
+  for anything that must not be writable.
+- `secret-guard` blocks a known secret from appearing verbatim in a payload. It
+  will not catch a re-encoded (base64, split, obfuscated) copy of the same secret.
+- The statusline's width detection uses `COLUMNS` then the controlling terminal;
+  if neither is available it assumes wide. It never crashes, worst case it shows
+  all segments.
+
 ## License
 
 MIT. See `LICENSE`.
